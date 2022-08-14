@@ -5,5 +5,6 @@ I orginally had the idea for this project back when I was taking a databases cou
 Nonetheless, I want to attempt this to get experience creating my very own api.
 
 Plans:
+
   Create a python library with beautiful soup to retrieve data from TFRRS, so if anyone wants to use the python framework they can.
   Also create a webserver to have api endpoints to allow people using other frame works and languages to use the api.
