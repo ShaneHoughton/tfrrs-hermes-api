@@ -22,7 +22,10 @@ class Hermes:
         rows = table_bests.find_all("td")
         bests = {}
         for i in range(0,len(rows), 2):
-            bests[self.remove_spaces(rows[i].text)] = self.remove_spaces(rows[i+1].text)
+            event = self.remove_spaces(rows[i].text)
+            time = self.remove_spaces(rows[i+1].text)
+            if event != "" or time != "":
+                bests[event] = time
         return bests
 
 
