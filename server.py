@@ -26,9 +26,18 @@ class InvalidAPIUsage(Exception):
 def invalid_api_usage(e):
     return jsonify(e.to_dict()), e.status_code
 
-@app.route("/")
+@app.route("/athlete-bests")
 def hello_world():
-    return "<p>Hello, World!</p>"
+    headers = ['Name','State', 'Team-name', 'Gender', 'Season']
+    header_vals = get_header_vals(headers, request)
+    print(header_vals)
+    if None in header_vals:
+        raise InvalidAPIUsage("Headers are incorrect.")
+    name, state, team_name, gender, season = header_vals
+    try:
+        return jsonify(hermes.get_athlete_bests(name, state, team_name, gender, season))
+    except:
+        raise InvalidAPIUsage()
 
 
 @app.get("/roster")

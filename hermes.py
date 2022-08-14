@@ -1,4 +1,4 @@
-import requests
+import requests, re
 from bs4 import BeautifulSoup
 
 class Hermes:
@@ -15,6 +15,15 @@ class Hermes:
             year = athlete_info.find_all('td')[1].text.strip()
             roster.append({'name':name, 'year':year})
         return roster
+    
+    def get_athlete_bests(self, name, state, team_name, gender, season):
+        athlete_html = self.get_athlete_html(name, state, team_name, gender, season)
+        table_bests = athlete_html.find("table", class_="table bests")
+        rows = table_bests.find_all("td")
+        bests = {}
+        for i in range(0,len(rows), 2):
+            bests[self.remove_spaces(rows[i].text)] = self.remove_spaces(rows[i+1].text)
+        return bests
 
 
     def get_athlete_html(self, name, state, team_name, gender, season):
@@ -51,4 +60,9 @@ class Hermes:
         roster_rows = roster_table.find_all("tr")
         roster_rows.pop(0) # pop the first item in the list because it is just NAME and YEAR
         return roster_rows
+
+     
+    def remove_spaces(self, string):
+        pattern = re.compile(r'\s+')
+        return re.sub(pattern, '', string)
 
