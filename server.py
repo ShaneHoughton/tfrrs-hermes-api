@@ -3,6 +3,7 @@ from hermes import Hermes
 
 
 app = Flask(__name__)
+# header_map = {'Gender':['m', 'f'], "Season":['Outdoor', 'Indoor', 'Cross_Country']}
 hermes = Hermes()
 
 class InvalidAPIUsage(Exception):
@@ -27,15 +28,26 @@ def invalid_api_usage(e):
     return jsonify(e.to_dict()), e.status_code
 
 @app.route("/athlete-bests")
-def hello_world():
+def get_athlete_bests():
     headers = ['Name','State', 'Team-name', 'Gender', 'Season']
     header_vals = get_header_vals(headers, request)
-    print(header_vals)
     if None in header_vals:
         raise InvalidAPIUsage("Headers are incorrect.")
     name, state, team_name, gender, season = header_vals
     try:
         return jsonify(hermes.get_athlete_bests(name, state, team_name, gender, season))
+    except:
+        raise InvalidAPIUsage()
+
+@app.route("/athlete-results") # not set on the name
+def get_athlete_results():
+    headers = ['Name','State', 'Team-name', 'Gender', 'Season']
+    header_vals = get_header_vals(headers, request)
+    if None in header_vals:
+        raise InvalidAPIUsage("Headers are incorrect.")
+    name, state, team_name, gender, season = header_vals
+    try:
+        return jsonify(hermes.get_athlete_results(name, state, team_name, gender, season))
     except:
         raise InvalidAPIUsage()
 
@@ -55,4 +67,5 @@ def get_roster():
 def get_header_vals(headers, request):
     vals = [request.headers.get(header) for header in headers]
     return tuple(vals)
+
 
