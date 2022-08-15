@@ -1,10 +1,8 @@
-from email import header
 from flask import Flask, jsonify, request
 from hermes import Hermes
 
 
 app = Flask(__name__)
-# header_map = {'Gender':['m', 'f'], "Season":['Outdoor', 'Indoor', 'Cross_Country']}
 hermes = Hermes()
 
 class InvalidAPIUsage(Exception):
