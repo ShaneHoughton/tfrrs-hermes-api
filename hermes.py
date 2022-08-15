@@ -30,24 +30,26 @@ class Hermes:
 
     def get_athlete_results(self, name, state, team_name, gender, season):
         info_keys = ['event', 'result', 'place', 'final']
-        meet_results  = {}
+        meet_results  = []
         athlete_html = self.get_athlete_html(name, state, team_name, gender, season)
         meet_results_table = athlete_html.find(id="meet-results").find_all("div")
         for meet in meet_results_table:
             title = meet.find("thead").text.strip().replace('\xa0\xa0\xa0', '')
             meet_name, date = title.split('\n')
-            table_rows = meet.find_all("tr")
-            meet_results[meet_name] = {}
-            meet_results[meet_name]['date'] = date
-            event_list = []
-            for i in range(1,len(table_rows)):
-                event_info = {}
-                row_info = table_rows[i].text.replace('\xa0','').split('\n')
-                row_info = [element for element in row_info if (element !='' and element != '\t')]
-                for j in range(len(row_info)):
-                    event_info[info_keys[j]] = row_info[j]
-                event_list.append(event_info)
-            meet_results[meet_name]['events'] = event_list
+            meet_info = {}
+            meet_info['meet_name'] = meet_name
+            meet_info['date'] = date
+            table_row = meet.find_all("tr")
+            meet_info['performances'] = []
+            for perf in table_row:
+                perf_info = {}
+                table_data = perf.find_all("td")
+                if table_data != []:
+                    table_data = [data.text.strip() for data in table_data]
+                    for i in range(len(table_data)):
+                        perf_info[info_keys[i]] = table_data[i].replace('\xa0\n', '').replace('\n',' ').strip('\\"')
+                    meet_info['performances'].append(perf_info)
+            meet_results.append(meet_info)
         return meet_results
 
     def get_soup(self, url): # gets html with beautiful soup
@@ -61,7 +63,7 @@ class Hermes:
             if name == athlete_info.find_all('td')[0].text.strip().replace(', ','_'):
                 athlete_url = self.URL + athlete_info.find_all('a')[0]['href']
                 break
-        return self.get_soup(athlete_url)
+        return self.get_soup(athlete_url) # TODO: raise exception if html not found, athlete dne or is not on the roster this season
 
     def get_year_keys(self, state, team_name, gender): # for getting the key "configure_hnd" so we can get the html page from a certain year
         soup = self.get_soup(self.URL + f'teams/{state.upper()}_college_{gender.lower()}_{team_name}.html')
@@ -85,8 +87,6 @@ class Hermes:
         roster_rows.pop(0) # pop the first item in the list because it is just NAME and YEAR
         return roster_rows
 
-     
     def remove_spaces(self, string):
         pattern = re.compile(r'\s+')
         return re.sub(pattern, '', string)
-

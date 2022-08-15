@@ -8,7 +8,7 @@ hermes = Hermes()
 
 class InvalidAPIUsage(Exception):
     status_code = 400
-    message = 'Bad request. Check that syntax is correct.'
+    message = 'Bad request. Check that syntax is correct and information was entered correctly.'
     def __init__(self, message=None, status_code=None, payload=None):
         super().__init__()
         if message is not None:
