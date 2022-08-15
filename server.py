@@ -43,6 +43,11 @@ def get_roster():
     headers = ['State', 'Team-name', 'Gender', 'Season']
     return perform_request(headers, hermes.get_roster)
 
+@app.get("/top-performances")
+def get_top_perfs():
+    headers = ['State', 'Team-name', 'Gender', 'Season']
+    return perform_request(headers, hermes.get_top_performances)
+
 def get_header_vals(headers, request):
     vals = [request.headers.get(header) for header in headers]
     return tuple(vals)
@@ -50,7 +55,7 @@ def get_header_vals(headers, request):
 def perform_request(headers, method):
     header_vals = get_header_vals(headers, request)
     if None in header_vals:
-        raise InvalidAPIUsage("Headers are incorrect.")
+        raise InvalidAPIUsage("Check that headers are correct.")
     try:
         print(header_vals)
         return jsonify(method(*header_vals))

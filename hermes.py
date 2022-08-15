@@ -40,13 +40,28 @@ class Hermes:
             List of dictionaries containing athlete information
         """
         team_html = self.get_team_html(state, team_name, gender, season)
-        roster_rows = self.get_roster_table(team_html)
+        roster_rows = self.get_table_by_heading(team_html, 'NAME')
         roster = []
         for athlete_info in roster_rows:
             name = athlete_info.find_all('td')[0].text.strip()
             year = athlete_info.find_all('td')[1].text.strip()
             roster.append({'name':name, 'year':year})
         return roster
+
+    def get_top_performances(self, state, team_name, gender, season):
+        info_keys = ['event', 'athlete(s)', 'year', 'time/mark']
+        team_html = self.get_team_html(state, team_name, gender, season)
+        rows = self.get_table_by_heading(team_html, 'EVENT') #getting top performance table by the EVENT heading, hackish ik.
+        performances = []
+        for row in rows:
+            perf = {}
+            table_data = row.find_all('td')
+            for i in range(len(table_data)):
+                #such a hack lol, regex or something should be used, but I wanted to space out the first and last name but
+                #not affect 10,000 meters
+                perf[info_keys[i]] = self.remove_whitespace(table_data[i].text).replace(',', ', ').replace(', 0', ',0')
+            performances.append(perf)
+        return performances
     
     def get_athlete_bests(self, name, state, team_name, gender, season):
         """
@@ -249,25 +264,26 @@ class Hermes:
         page_url += f'?config_hnd={year_keys[season]}'
         return self.get_soup(page_url)
 
-    def get_roster_table(self, html):
-        """
-        Returns the roster table rows for a team.
+    def get_table_by_heading(self, html, heading):# TODO: update docs
+        """ 
+        Returns the table rows for a table given team page html and a heading.
 
         Parameters
         ----------
         html : soup obj
-            The html of a specified team
+            The html of a specified team page
 
         Returns
         -------
         list
-            list of rows of athletes
+            list of table rows
         """
         html_tables = html.find_all("table", class_="tablesaw")
         for table in html_tables: # there are multiple tables on some pages especially with track teams
-            if table.find('th').text.strip() == 'NAME': # athlete table has a header with NAME
-                roster_table = table
-        roster_rows = roster_table.find_all("tr")
+            if table.find('th').text.strip() == heading: # we are identifying the table by a header definitely a hack
+                found_table = table
+                break
+        roster_rows = found_table.find_all("tr")
         roster_rows.pop(0) # pop the first item in the list because it is just NAME and YEAR
         return roster_rows
 
