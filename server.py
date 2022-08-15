@@ -1,3 +1,4 @@
+from email import header
 from flask import Flask, jsonify, request
 from hermes import Hermes
 
@@ -30,42 +31,30 @@ def invalid_api_usage(e):
 @app.route("/athlete-bests")
 def get_athlete_bests():
     headers = ['Name','State', 'Team-name', 'Gender', 'Season']
-    header_vals = get_header_vals(headers, request)
-    if None in header_vals:
-        raise InvalidAPIUsage("Headers are incorrect.")
-    name, state, team_name, gender, season = header_vals
-    try:
-        return jsonify(hermes.get_athlete_bests(name, state, team_name, gender, season))
-    except:
-        raise InvalidAPIUsage()
+    return perform_request(headers, hermes.get_athlete_bests)
 
 @app.route("/athlete-results") # not set on the name
 def get_athlete_results():
     headers = ['Name','State', 'Team-name', 'Gender', 'Season']
-    header_vals = get_header_vals(headers, request)
-    if None in header_vals:
-        raise InvalidAPIUsage("Headers are incorrect.")
-    name, state, team_name, gender, season = header_vals
-    try:
-        return jsonify(hermes.get_athlete_results(name, state, team_name, gender, season))
-    except:
-        raise InvalidAPIUsage()
-
+    return perform_request(headers, hermes.get_athlete_results)
 
 @app.get("/roster")
 def get_roster():
     headers = ['State', 'Team-name', 'Gender', 'Season']
-    header_vals = get_header_vals(headers, request)
-    if None in header_vals:
-        raise InvalidAPIUsage("Headers are incorrect.")
-    state, team_name, gender, season = header_vals
-    try:
-        return jsonify(hermes.get_roster(state, team_name, gender, season))
-    except:
-        raise InvalidAPIUsage()
+    return perform_request(headers, hermes.get_roster)
 
 def get_header_vals(headers, request):
     vals = [request.headers.get(header) for header in headers]
     return tuple(vals)
+
+def perform_request(headers, method):
+    header_vals = get_header_vals(headers, request)
+    if None in header_vals:
+        raise InvalidAPIUsage("Headers are incorrect.")
+    try:
+        print(header_vals)
+        return jsonify(method(*header_vals))
+    except:
+        raise InvalidAPIUsage()
 
 
