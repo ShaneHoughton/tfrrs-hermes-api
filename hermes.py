@@ -23,9 +23,9 @@ class Hermes:
         bests = {}
         for i in range(0,len(rows), 2):
             event = self.remove_spaces(rows[i].text)
-            time = self.remove_spaces(rows[i+1].text)
-            if event != "" or time != "":
-                bests[event] = time
+            mark = self.remove_spaces(rows[i+1].text).strip('\\"').replace('m', 'm ') #hackish way of spacing metric and standard
+            if event != "" or mark != "":
+                bests[event] = mark
         return bests
 
     def get_athlete_results(self, name, state, team_name, gender, season):
@@ -34,22 +34,24 @@ class Hermes:
         athlete_html = self.get_athlete_html(name, state, team_name, gender, season)
         meet_results_table = athlete_html.find(id="meet-results").find_all("div")
         for meet in meet_results_table:
-            title = meet.find("thead").text.strip().replace('\xa0\xa0\xa0', '')
-            meet_name, date = title.split('\n')
-            meet_info = {}
-            meet_info['meet_name'] = meet_name
-            meet_info['date'] = date
-            table_row = meet.find_all("tr")
-            meet_info['performances'] = []
-            for perf in table_row:
-                perf_info = {}
-                table_data = perf.find_all("td")
-                if table_data != []:
-                    table_data = [data.text.strip() for data in table_data]
-                    for i in range(len(table_data)):
-                        perf_info[info_keys[i]] = table_data[i].replace('\xa0\n', '').replace('\n',' ').strip('\\"')
-                    meet_info['performances'].append(perf_info)
-            meet_results.append(meet_info)
+            # there are some divs in athlete results to specify whether they transferred or not, resulting in a None.
+            if meet.find("thead") is not None:
+                title = meet.find("thead").text.strip().replace('\xa0\xa0\xa0', '')
+                meet_name, date = title.split('\n')
+                meet_info = {}
+                meet_info['meet_name'] = meet_name
+                meet_info['date'] = date
+                table_row = meet.find_all("tr")
+                meet_info['performances'] = []
+                for perf in table_row:
+                    perf_info = {}
+                    table_data = perf.find_all("td")
+                    if table_data != []:
+                        table_data = [data.text.strip() for data in table_data]
+                        for i in range(len(table_data)):
+                            perf_info[info_keys[i]] = table_data[i].replace('\xa0\n', '').replace('\n',' ').strip('\\"')
+                        meet_info['performances'].append(perf_info)
+                meet_results.append(meet_info)
         return meet_results
 
     def get_soup(self, url): # gets html with beautiful soup
