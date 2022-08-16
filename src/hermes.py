@@ -283,8 +283,12 @@ class Hermes:
             if table.find('th').text.strip() == heading: # we are identifying the table by a header definitely a hack
                 found_table = table
                 break
-        roster_rows = found_table.find_all("tr")
-        roster_rows.pop(0) # pop the first item in the list because it is just NAME and YEAR
+        try:
+            roster_rows = found_table.find_all("tr")
+            roster_rows.pop(0) # pop the first item in the list because it is just NAME and YEAR
+        except:
+            roster_rows = []
+         
         return roster_rows
 
     def remove_whitespace(self, string):
