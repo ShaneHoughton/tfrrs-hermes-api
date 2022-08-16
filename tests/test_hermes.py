@@ -1,7 +1,7 @@
 # from hermes import Hermes
 from bs4 import BeautifulSoup
-import pytest
-
+from src.hermes import Hermes
+h = Hermes
 def mock_get_soup(html):
     try:
         with open(html, 'rb') as f:

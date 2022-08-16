@@ -1,5 +1,5 @@
 from flask import Flask, jsonify, request
-from hermes import Hermes
+from src.hermes import Hermes
 
 
 app = Flask(__name__)
