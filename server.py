@@ -46,12 +46,12 @@ def get_top_perfs():
     headers = ['State', 'Team-name', 'Gender', 'Season']
     return perform_request(headers, hermes.get_top_performances)
 
-def get_header_vals(headers, request):
-    vals = [request.headers.get(header) for header in headers]
+def get_arg_vals(headers, request):
+    vals = [request.args.get(header) for header in headers]
     return tuple(vals)
 
 def perform_request(headers, method):
-    header_vals = get_header_vals(headers, request)
+    header_vals = get_arg_vals(headers, request)
     if None in header_vals:
         raise InvalidAPIUsage("Check that headers are correct.")
     try:
