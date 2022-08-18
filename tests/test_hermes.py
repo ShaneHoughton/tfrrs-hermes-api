@@ -28,8 +28,7 @@ class Mock_Hermes(Hermes):
         """
         print(f'overrdidden: {html}')
         soup = {}
-        # if 'https://' in html:
-        #     html = f'tests/html_files/{urls[html]}' # if its a url it will just get the file name from url dict
+        
         try:
             with open(f'tests/html_files/{urls[html]}', 'rb') as f:
                 soup = BeautifulSoup(f.read(), 'html.parser')

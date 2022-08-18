@@ -48,19 +48,12 @@ class Hermes:
             roster.append({'name':name, 'year':year})
         return roster
 
-    def get_top_performances(self, state, team_name, gender, season):
+    def get_top_performances(self, state, team_name, gender, season): # Document
         info_keys = ['event', 'athlete(s)', 'year', 'time/mark']
         team_html = self.get_team_html(state, team_name, gender, season)
-        rows = self.get_table_by_heading(team_html, 'EVENT') #getting top performance table by the EVENT heading, hackish ik.
-        performances = []
-        for row in rows:
-            perf = {}
-            table_data = row.find_all('td')
-            for i in range(len(table_data)):
-                #such a hack lol, regex or something should be used, but I wanted to space out the first and last name but
-                #not affect 10,000 meters
-                perf[info_keys[i]] = self.remove_whitespace(table_data[i].text).replace(',', ', ').replace(', 0', ',0')
-            performances.append(perf)
+        table = self.get_table_by_heading(team_html, 'EVENT') #getting top performance table by the EVENT heading, hackish ik.
+        performances = get_table_data(info_keys, table)
+        performances.pop(0)
         return performances
     
     def get_athlete_bests(self, name, state, team_name, gender, season):
@@ -154,6 +147,13 @@ class Hermes:
                         meet_info['performances'].append(perf_info)
                 meet_results.append(meet_info)
         return meet_results
+
+    def get_meets(self):
+        info_keys = ['date', 'meet_name', 'sport', 'state']
+        meets_html = self.get_soup(self.URL+'results_search.html')
+        meets_table = meets_html.find("table")
+        meets = get_table_data(info_keys, meets_table)
+        return meets
 
     def get_soup(self, url): # gets html with beautiful soup
         """
@@ -281,15 +281,8 @@ class Hermes:
         html_tables = html.find_all("table", class_="tablesaw")
         for table in html_tables: # there are multiple tables on some pages especially with track teams
             if table.find('th').text.strip() == heading: # we are identifying the table by a header definitely a hack
-                found_table = table
-                break
-        try:
-            roster_rows = found_table.find_all("tr")
-            roster_rows.pop(0) # pop the first item in the list because it is just NAME and YEAR
-        except:
-            roster_rows = []
-         
-        return roster_rows
+                return table
+        return []
 
     def remove_whitespace(self, string):
         """
@@ -307,3 +300,15 @@ class Hermes:
         """
         pattern = re.compile(r'\s+')
         return re.sub(pattern, '', string)
+
+
+def get_table_data(keys, table): # general function idea
+    collection = []
+    rows = table.find_all("tr")
+    for row in rows:
+        info = {}
+        row = row.find_all("td")
+        for i in range(len(row)):
+            info[keys[i]] = row[i].text.replace('\xa0\n', '').replace('\n',' ').strip('\\"').strip()
+        collection.append(info)
+    return collection
