@@ -39,13 +39,10 @@ class Hermes:
         list
             List of dictionaries containing athlete information
         """
+        info_keys = ['name', 'year']
         team_html = self.get_team_html(state, team_name, gender, season)
-        roster_rows = self.get_table_by_heading(team_html, 'NAME')
-        roster = []
-        for athlete_info in roster_rows:
-            name = athlete_info.find_all('td')[0].text.strip()
-            year = athlete_info.find_all('td')[1].text.strip()
-            roster.append({'name':name, 'year':year})
+        roster_table = self.get_table_by_heading(team_html, 'NAME')
+        roster = get_table_data(info_keys, roster_table)
         return roster
 
     def get_top_performances(self, state, team_name, gender, season): # Document
@@ -126,25 +123,16 @@ class Hermes:
         info_keys = ['event', 'result', 'place', 'final']
         meet_results  = []
         athlete_html = self.get_athlete_html(name, state, team_name, gender, season)
-        meet_results_table = athlete_html.find(id="meet-results").find_all("div")
-        for meet in meet_results_table:
+        meet_results_tables = athlete_html.find(id="meet-results").find_all("table")
+        for meet_table in meet_results_tables:
             # there are some divs in athlete results to specify whether they transferred or not, resulting in a None.
-            if meet.find("thead") is not None:
-                title = meet.find("thead").text.strip().replace('\xa0\xa0\xa0', '')
+            if meet_table.find("thead") is not None:
+                title = meet_table.find("thead").text.strip().replace('\xa0\xa0\xa0', '')
                 meet_name, date = title.split('\n')
                 meet_info = {}
                 meet_info['meet_name'] = meet_name
                 meet_info['date'] = date
-                table_row = meet.find_all("tr")
-                meet_info['performances'] = []
-                for perf in table_row:
-                    perf_info = {}
-                    table_data = perf.find_all("td")
-                    if table_data != []:
-                        table_data = [data.text.strip() for data in table_data]
-                        for i in range(len(table_data)):
-                            perf_info[info_keys[i]] = table_data[i].replace('\xa0\n', '').replace('\n',' ').strip('\\"')
-                        meet_info['performances'].append(perf_info)
+                meet_info['performances'] = get_table_data(info_keys, meet_table)[1:]
                 meet_results.append(meet_info)
         return meet_results
 
@@ -309,6 +297,6 @@ def get_table_data(keys, table): # general function idea
         info = {}
         row = row.find_all("td")
         for i in range(len(row)):
-            info[keys[i]] = row[i].text.replace('\xa0\n', '').replace('\n',' ').strip('\\"').strip()
+            info[keys[i]] = row[i].text.replace('\xa0\n', '').replace('\n',' ').replace('           ', ' ').strip('\\"').strip()
         collection.append(info)
     return collection
