@@ -1,6 +1,5 @@
-# from hermes import Hermes
 from bs4 import BeautifulSoup
-from src.hermes import Hermes
+from src.hermes import Hermes, remove_whitespace
 
 urls = {
     'https://www.tfrrs.org/teams/PA_college_m_Moravian.html': 'main_moravian.html',
@@ -103,9 +102,8 @@ def test_get_table_by_heading_returns_rows():
     assert len(hermes.get_table_by_heading(html, 'NOTHING')) == 0
 
 def test_remove_white_space():
-    hermes = Mock_Hermes()
     str = "\n\n\nstring\t\t  \t"
-    assert hermes.remove_whitespace(str) == 'string'
+    assert remove_whitespace(str) == 'string'
 
 def test_get_athlete_results_returns_list(): # eh test fix
     hermes = Mock_Hermes()

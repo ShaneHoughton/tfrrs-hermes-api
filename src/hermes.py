@@ -85,8 +85,8 @@ class Hermes:
         rows = table_bests.find_all("td")
         bests = {}
         for i in range(0,len(rows), 2):
-            event = self.remove_whitespace(rows[i].text)
-            mark = self.remove_whitespace(rows[i+1].text).strip('\\"').replace('m', 'm ') #hackish way of spacing metric and standard
+            event = remove_whitespace(rows[i].text)
+            mark = remove_whitespace(rows[i+1].text).strip('\\"').replace('m', 'm ') #hackish way of spacing metric and standard
             if event != "" or mark != "":
                 bests[event] = mark
         return bests
@@ -190,10 +190,11 @@ class Hermes:
         """
         team_html = self.get_team_html(state, team_name, gender, season)
         roster_rows = self.get_table_by_heading(team_html, 'NAME')
-        for athlete_info in roster_rows: # does a look up of the athlete by name
-            if name == athlete_info.find_all('td')[0].text.strip().replace(', ','_'):
-                athlete_url = self.URL + athlete_info.find_all('a')[0]['href']
-                break
+        athlete_url = ''
+        for athlete_info in roster_rows('td'): # does a look up of the athlete by name
+            if name == remove_whitespace(athlete_info.text).replace(',', '_'):
+                athlete_url = self.URL + athlete_info('a')[0]['href']
+                break                
         return self.get_soup(athlete_url) # TODO: raise exception if html not found, athlete dne or is not on the roster this season
 
     def get_year_keys(self, state, team_name, gender): # for getting the key "configure_hnd" so we can get the html page from a certain year
@@ -272,22 +273,22 @@ class Hermes:
                 return table
         return []
 
-    def remove_whitespace(self, string):
-        """
-        removes whitespace characters like \n and \t 
+def remove_whitespace(string):
+    """
+    removes whitespace characters like \n and \t 
 
-        Paramters
-        ---------
-        string : str
-            string we want to remove white space from
+    Paramters
+    ---------
+    string : str
+        string we want to remove white space from
 
-        Returns
-        -------
-        str
-            string stripped of whitespace
-        """
-        pattern = re.compile(r'\s+')
-        return re.sub(pattern, '', string)
+    Returns
+    -------
+    str
+        string stripped of whitespace
+    """
+    pattern = re.compile(r'\s+')
+    return re.sub(pattern, '', string)
 
 
 def get_table_data(keys, table): # general function idea
@@ -300,3 +301,5 @@ def get_table_data(keys, table): # general function idea
             info[keys[i]] = row[i].text.replace('\xa0\n', '').replace('\n',' ').replace('           ', ' ').strip('\\"').strip()
         collection.append(info)
     return collection
+
+h = Hermes()
