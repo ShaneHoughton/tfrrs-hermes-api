@@ -1,5 +1,6 @@
 import requests, re
 from bs4 import BeautifulSoup
+from src.errors import NoAthleteFoundException
 
 class Hermes:
     def __init__(self):
@@ -194,9 +195,10 @@ class Hermes:
         for athlete_info in roster_rows('td'): # does a look up of the athlete by name
             if name == remove_whitespace(athlete_info.text).replace(',', '_'):
                 athlete_url = self.URL + athlete_info('a')[0]['href']
-                break                
-        return self.get_soup(athlete_url) # TODO: raise exception if html not found, athlete dne or is not on the roster this season
-
+                return self.get_soup(athlete_url)  
+                
+        raise NoAthleteFoundException(name)
+        
     def get_year_keys(self, state, team_name, gender): # for getting the key "configure_hnd" so we can get the html page from a certain year
         """
         This method is essential for finding the team on a given year. Tffrs has values for each team and their corresponding
@@ -301,5 +303,3 @@ def get_table_data(keys, table): # general function idea
             info[keys[i]] = row[i].text.replace('\xa0\n', '').replace('\n',' ').replace('           ', ' ').strip('\\"').strip()
         collection.append(info)
     return collection
-
-h = Hermes()
