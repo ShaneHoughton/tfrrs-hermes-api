@@ -43,7 +43,7 @@ class Hermes:
         info_keys = ['name', 'year']
         team_html = self.get_team_html(state, team_name, gender, season)
         roster_table = self.get_table_by_heading(team_html, 'NAME')
-        roster = get_table_data(info_keys, roster_table)
+        roster = get_table_data(info_keys, roster_table)[1:]
         return roster
 
     def get_top_performances(self, state, team_name, gender, season): # Document
