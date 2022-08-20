@@ -107,7 +107,7 @@ def test_get_table_by_heading_raises_exception():
     html = hermes.get_soup('https://www.tfrrs.org/teams/PA_college_m_Moravian.html?config_hnd=255')
     with pytest.raises(NoTableFoundException) as exc:
         hermes.get_table_by_heading(html, 'NOTHING')
-    assert "Table could not be found" in str(exc.value)
+    assert "Table with heading: NOTHING, could not be found" in str(exc.value)
     assert exc.type == NoTableFoundException
 
 def test_remove_white_space():

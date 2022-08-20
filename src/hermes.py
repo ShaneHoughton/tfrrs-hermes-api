@@ -223,14 +223,15 @@ class Hermes:
         dict
             Season and its values
         """
-        try:
-            soup = self.get_soup(self.URL + f'teams/{state.upper()}_college_{gender.lower()}_{team_name}.html')
-            form_control = soup.find("select", class_="form-control")
-            year_info = form_control.find_all("option")
-            year_info.pop(0) # dictionary comprehension to get the keys and values for the years
-            return {year.text.strip().replace('NCAA','').replace(' ','_').replace('__','_') : str(year).split('"')[1] for year in year_info}
-        except:
+       
+        soup = self.get_soup(self.URL + f'teams/{state.upper()}_college_{gender.lower()}_{team_name}.html')
+        form_control = soup.find("select", class_="form-control")
+        if form_control is None:
             raise NoTeamFoundException(team_name)
+        year_info = form_control.find_all("option")
+        year_info.pop(0) # dictionary comprehension to get the keys and values for the years
+        return {year.text.strip().replace('NCAA','').replace(' ','_').replace('__','_') : str(year).split('"')[1] for year in year_info}
+        
         
     def get_team_html(self, state, team_name, gender, season):
         """
@@ -277,31 +278,28 @@ class Hermes:
         list
             list of table rows
         """
-        try:
-            html_tables = html.find_all("table", class_="tablesaw")
-            for table in html_tables: # there are multiple tables on some pages especially with track teams
-                if table.find('th').text.strip() == heading: # we are identifying the table by a header definitely a hack
-                   return table
-        except:
-            raise NoTableFoundException()
+        
+        html_tables = html.find_all("table", class_="tablesaw")
+        for table in html_tables: # there are multiple tables on some pages especially with track teams
+            if table.find('th').text.strip() == heading: # we are identifying the table by a header definitely a hack
+                return table
+        raise NoTableFoundException(heading)
 
 
 class NoAthleteFoundException(Exception):
-    def __init__(self, name, message="Athlete could not be found"):
-        self.name = name
-        self.message = message
+    def __init__(self, name):
+        self.message = f"Athlete: {name}, could not be found"
         super().__init__(self.message)
 
 class NoTeamFoundException(Exception):
-    def __init__(self, team_name, message="Team could not be found"):
-        self.team_name = team_name
-        self.message = message
+    def __init__(self, team_name):
+        self.message = f"Team: {team_name}, could not be found"
         super().__init__(self.message)
 
 
 class NoTableFoundException(Exception):
-    def __init__(self, message="Table could not be found"):
-        self.message = message
+    def __init__(self, heading):
+        self.message = f"Table with heading: {heading}, could not be found"
         super().__init__(self.message)
 
 

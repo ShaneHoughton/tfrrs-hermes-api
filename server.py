@@ -58,10 +58,10 @@ def perform_request(headers, method):
     try:
         print(header_vals)
         return jsonify(method(*header_vals))
-    except NoAthleteFoundException:
-        raise InvalidAPIUsage("Could not find the specified athlete.")
-    except NoTeamFoundException:
-        raise InvalidAPIUsage("Could not find the specified team.")
+    except NoAthleteFoundException as e:
+        raise InvalidAPIUsage(e.message)
+    except NoTeamFoundException as e:
+        raise InvalidAPIUsage(e.message)
     # except:
     #     InvalidAPIUsage("IDK")
 
