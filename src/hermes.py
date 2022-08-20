@@ -42,17 +42,15 @@ class Hermes:
         """
         info_keys = ['name', 'year']
         team_html = self.get_team_html(state, team_name, gender, season)
-        print(team_html)
-        print("******")
         roster_table = self.get_table_by_heading(team_html, 'NAME')
-        roster = get_table_data(info_keys, roster_table)[1:]
+        roster = get_table_data(roster_table)[1:]
         return roster
 
     def get_top_performances(self, state, team_name, gender, season): # Document
         info_keys = ['event', 'athlete(s)', 'year', 'time/mark']
         team_html = self.get_team_html(state, team_name, gender, season)
         table = self.get_table_by_heading(team_html, 'EVENT') #getting top performance table by the EVENT heading, hackish ik.
-        performances = get_table_data(info_keys, table)
+        performances = get_table_data(table)
         performances.pop(0)
         return performances
     
@@ -135,7 +133,7 @@ class Hermes:
                 meet_info = {}
                 meet_info['meet_name'] = meet_name
                 meet_info['date'] = date
-                meet_info['performances'] = get_table_data(info_keys, meet_table)[1:]
+                meet_info['performances'] = get_table_data(meet_table, info_keys)[1:]
                 meet_results.append(meet_info)
         return meet_results
 
@@ -143,8 +141,20 @@ class Hermes:
         info_keys = ['date', 'meet_name', 'sport', 'state']
         meets_html = self.get_soup(self.URL+'results_search.html')
         meets_table = meets_html.find("table")
-        meets = get_table_data(info_keys, meets_table)
+        meets = get_table_data(meets_table, info_keys)[1:]
         return meets
+
+    def get_meet_results(self, meet_html):
+        table_containers = meet_html.find_all('div', class_='col-lg-12')
+        events = []
+        for table_cont in table_containers:
+            event = {}
+            event_name = table_cont.find('div', class_='custom-table-title').text.strip().split('\n')
+            event['name'] = f'{event_name[0]} {event_name[1]}'
+            table = table_cont.find('table')
+            event['results'] = get_table_data(table)[1:]
+            events.append(event)
+        return events
 
     def get_soup(self, url): # gets html with beautiful soup
         """
@@ -321,8 +331,13 @@ def remove_whitespace(string):
     return re.sub(pattern, '', string)
 
 
-def get_table_data(keys, table): # general function idea
+def get_table_data(table, keys=None, ): # general function idea
     collection = []
+    table_head = table.find('thead') 
+    if keys is None:
+        headers = table_head.find_all('th')
+        keys = [remove_whitespace(header.text).lower() for header in headers]
+
     rows = table.find_all("tr")
     for row in rows:
         info = {}

@@ -59,9 +59,9 @@ def perform_request(headers, method):
         print(header_vals)
         return jsonify(method(*header_vals))
     except NoAthleteFoundException as e:
-        raise InvalidAPIUsage(e.message)
+        raise InvalidAPIUsage(message=e.message, status_code=404)
     except NoTeamFoundException as e:
-        raise InvalidAPIUsage(e.message)
+        raise InvalidAPIUsage(message=e.message, status_code=404)
     # except:
     #     InvalidAPIUsage("IDK")
 
