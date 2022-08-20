@@ -1,5 +1,6 @@
 from bs4 import BeautifulSoup
-from src.hermes import Hermes, remove_whitespace
+from src.hermes import Hermes, remove_whitespace, NoTableFoundException
+import pytest
 
 urls = {
     'https://www.tfrrs.org/teams/PA_college_m_Moravian.html': 'main_moravian.html',
@@ -99,7 +100,15 @@ def test_get_table_by_heading_returns_rows():
     html = hermes.get_soup('https://www.tfrrs.org/teams/PA_college_m_Moravian.html?config_hnd=255')
     assert len(hermes.get_table_by_heading(html, 'NAME')) != 0
     assert len(hermes.get_table_by_heading(html, 'EVENT')) != 0
-    assert len(hermes.get_table_by_heading(html, 'NOTHING')) == 0
+    # assert len(hermes.get_table_by_heading(html, 'NOTHING')) == 0
+
+def test_get_table_by_heading_raises_exception():
+    hermes = Mock_Hermes()
+    html = hermes.get_soup('https://www.tfrrs.org/teams/PA_college_m_Moravian.html?config_hnd=255')
+    with pytest.raises(NoTableFoundException) as exc:
+        hermes.get_table_by_heading(html, 'NOTHING')
+    assert "Table could not be found" in str(exc.value)
+    assert exc.type == NoTableFoundException
 
 def test_remove_white_space():
     str = "\n\n\nstring\t\t  \t"

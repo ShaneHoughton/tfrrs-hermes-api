@@ -42,6 +42,8 @@ class Hermes:
         """
         info_keys = ['name', 'year']
         team_html = self.get_team_html(state, team_name, gender, season)
+        print(team_html)
+        print("******")
         roster_table = self.get_table_by_heading(team_html, 'NAME')
         roster = get_table_data(info_keys, roster_table)[1:]
         return roster
@@ -221,11 +223,14 @@ class Hermes:
         dict
             Season and its values
         """
-        soup = self.get_soup(self.URL + f'teams/{state.upper()}_college_{gender.lower()}_{team_name}.html')
-        form_control = soup.find("select", class_="form-control")
-        year_info = form_control.find_all("option")
-        year_info.pop(0) # dictionary comprehension to get the keys and values for the years
-        return {year.text.strip().replace('NCAA','').replace(' ','_').replace('__','_') : str(year).split('"')[1] for year in year_info}
+        try:
+            soup = self.get_soup(self.URL + f'teams/{state.upper()}_college_{gender.lower()}_{team_name}.html')
+            form_control = soup.find("select", class_="form-control")
+            year_info = form_control.find_all("option")
+            year_info.pop(0) # dictionary comprehension to get the keys and values for the years
+            return {year.text.strip().replace('NCAA','').replace(' ','_').replace('__','_') : str(year).split('"')[1] for year in year_info}
+        except:
+            raise NoTeamFoundException(team_name)
         
     def get_team_html(self, state, team_name, gender, season):
         """
@@ -250,10 +255,13 @@ class Hermes:
         soup obj
             the soup obj of the webpage html
         """
-        page_url = self.URL + f'teams/{state.upper()}_college_{gender.lower()}_{team_name}.html'
-        year_keys = self.get_year_keys(state, team_name, gender) # retrieve the value for the season we want to find
-        page_url += f'?config_hnd={year_keys[season]}'
-        return self.get_soup(page_url)
+        try:
+            page_url = self.URL + f'teams/{state.upper()}_college_{gender.lower()}_{team_name}.html'
+            year_keys = self.get_year_keys(state, team_name, gender) # retrieve the value for the season we want to find
+            page_url += f'?config_hnd={year_keys[season]}'
+            return self.get_soup(page_url)
+        except NoTableFoundException:
+            raise NoTeamFoundException(team_name)
 
     def get_table_by_heading(self, html, heading):# TODO: update docs
         """ 
@@ -269,11 +277,33 @@ class Hermes:
         list
             list of table rows
         """
-        html_tables = html.find_all("table", class_="tablesaw")
-        for table in html_tables: # there are multiple tables on some pages especially with track teams
-            if table.find('th').text.strip() == heading: # we are identifying the table by a header definitely a hack
-                return table
-        return []
+        try:
+            html_tables = html.find_all("table", class_="tablesaw")
+            for table in html_tables: # there are multiple tables on some pages especially with track teams
+                if table.find('th').text.strip() == heading: # we are identifying the table by a header definitely a hack
+                   return table
+        except:
+            raise NoTableFoundException()
+
+
+class NoAthleteFoundException(Exception):
+    def __init__(self, name, message="Athlete could not be found"):
+        self.name = name
+        self.message = message
+        super().__init__(self.message)
+
+class NoTeamFoundException(Exception):
+    def __init__(self, team_name, message="Team could not be found"):
+        self.team_name = team_name
+        self.message = message
+        super().__init__(self.message)
+
+
+class NoTableFoundException(Exception):
+    def __init__(self, message="Table could not be found"):
+        self.message = message
+        super().__init__(self.message)
+
 
 def remove_whitespace(string):
     """

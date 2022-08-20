@@ -1,7 +1,6 @@
-from email import message
 from flask import Flask, jsonify, request
-from src.hermes import Hermes
-from src.errors import NoAthleteFoundException
+from src.hermes import Hermes, NoAthleteFoundException, NoTeamFoundException
+
 
 
 app = Flask(__name__)
@@ -60,6 +59,10 @@ def perform_request(headers, method):
         print(header_vals)
         return jsonify(method(*header_vals))
     except NoAthleteFoundException:
-        raise InvalidAPIUsage("No athlete found")
+        raise InvalidAPIUsage("Could not find the specified athlete.")
+    except NoTeamFoundException:
+        raise InvalidAPIUsage("Could not find the specified team.")
+    # except:
+    #     InvalidAPIUsage("IDK")
 
 
