@@ -342,7 +342,8 @@ def get_table_data(table, keys=None, ): # general function idea
     for row in rows:
         info = {}
         row = row.find_all("td")
-        for i in range(len(row)):
-            info[keys[i]] = row[i].text.replace('\xa0\n', '').replace('\n',' ').replace('           ', ' ').strip('\\"').strip()
-        collection.append(info)
+        if(len(row) == len(keys)):
+            for i in range(len(row)): # should this be zip?
+                info[keys[i]] = row[i].text.replace('\xa0\n', '').replace('\n',' ').replace('           ', ' ').strip('\\"').strip()
+            collection.append(info)
     return collection
