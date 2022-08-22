@@ -30,29 +30,41 @@ def invalid_api_usage(e):
 @app.route("/athlete-bests")
 def get_athlete_bests():
     headers = ['Name','State', 'Team-name', 'Gender', 'Season']
-    return perform_request(headers, hermes.get_athlete_bests)
+    return perform_request(hermes.get_athlete_bests, headers)
 
 @app.route("/athlete-results") # not set on the name
 def get_athlete_results():
     headers = ['Name','State', 'Team-name', 'Gender', 'Season']
-    return perform_request(headers, hermes.get_athlete_results)
+    return perform_request(hermes.get_athlete_results, headers)
 
 @app.get("/roster")
 def get_roster():
     headers = ['State', 'Team-name', 'Gender', 'Season']
-    return perform_request(headers, hermes.get_roster)
+    return perform_request(hermes.get_roster, headers)
 
 @app.get("/top-performances")
 def get_top_perfs():
     headers = ['State', 'Team-name', 'Gender', 'Season']
-    return perform_request(headers, hermes.get_top_performances)
+    return perform_request(hermes.get_top_performances, headers)
+
+@app.get("/meets")
+def get_meets():
+    return perform_request(hermes.get_meets)
+
+@app.get("/meet-results")
+def get_meet_results():
+    headers = ['Meet-name', 'Gender']
+    return perform_request(hermes.get_meet_results, headers)
+
 
 def get_arg_vals(headers, request):
     vals = [request.args.get(header) for header in headers]
     return tuple(vals)
 
-def perform_request(headers, method):
-    header_vals = get_arg_vals(headers, request)
+def perform_request(method, headers=None):
+    header_vals = []
+    if headers is not None:
+        header_vals = get_arg_vals(headers, request)
     if None in header_vals:
         raise InvalidAPIUsage("Check that headers are correct.")
     try:

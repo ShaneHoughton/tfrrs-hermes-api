@@ -40,14 +40,12 @@ class Hermes:
         list
             List of dictionaries containing athlete information
         """
-        info_keys = ['name', 'year']
         team_html = self.get_team_html(state, team_name, gender, season)
         roster_table = self.get_table_by_heading(team_html, 'NAME')
         roster = get_table_data(roster_table)[1:]
         return roster
 
     def get_top_performances(self, state, team_name, gender, season): # Document
-        info_keys = ['event', 'athlete(s)', 'year', 'time/mark']
         team_html = self.get_team_html(state, team_name, gender, season)
         table = self.get_table_by_heading(team_html, 'EVENT') #getting top performance table by the EVENT heading, hackish ik.
         performances = get_table_data(table)
@@ -121,7 +119,7 @@ class Hermes:
             list of dictionaries containing meet dates, names, and lists of performance results
         """
 
-        info_keys = ['event', 'result', 'place', 'final']
+        info_keys = ['event', 'result', 'place']
         meet_results  = []
         athlete_html = self.get_athlete_html(name, state, team_name, gender, season)
         meet_results_tables = athlete_html.find(id="meet-results").find_all("table")
@@ -133,26 +131,36 @@ class Hermes:
                 meet_info = {}
                 meet_info['meet_name'] = meet_name
                 meet_info['date'] = date
-                meet_info['performances'] = get_table_data(meet_table, info_keys)[1:]
+                meet_info['performances'] = get_table_data(meet_table, info_keys)[1:] #set the keys manually because these tables do not have headers
                 meet_results.append(meet_info)
         return meet_results
 
-    def get_meets(self):
+    def get_meets(self): #can this use general get data function?
         info_keys = ['date', 'meet_name', 'sport', 'state']
         meets_html = self.get_soup(self.URL+'results_search.html')
         meets_table = meets_html.find("table")
-        meets = get_table_data(meets_table, info_keys)[1:]
+        meets = get_table_data(meets_table)[1:]
         return meets
 
-    def get_meet_results(self, meet_html):
+    def get_meet_results(self, meet_name, gender):
+        meets_html = self.get_soup(self.URL+'results_search.html') # because this page has very limited results it will not be able to find every meet
+        rows = meets_html.find_all("tr")[1:]
+        link = ''
+        for row in rows:
+            row_data = row.find_all('td')
+            if row_data[1].text.strip() == meet_name:
+                link = row.find('a')['href'].strip()
+                break
+        link = link.split('NCAA')
+        meet_html = self.get_soup(f'http:{link[0]}{gender}/{link[1]}') # reformatting the url to get the gender we want
         table_containers = meet_html.find_all('div', class_='col-lg-12')
         events = []
         for table_cont in table_containers:
             event = {}
             event_name = table_cont.find('div', class_='custom-table-title').text.strip().split('\n')
-            event['name'] = f'{event_name[0]} {event_name[1]}'
+            event['name'] = f'{event_name[0]} {event_name[1]}' # doing this so we don't lose info on whether its a final or prelim
             table = table_cont.find('table')
-            event['results'] = get_table_data(table)[1:]
+            event['results'] = get_table_data(table, same_size=True) # set same_size to true bc we don't want fouls or what happened on field event attempts
             events.append(event)
         return events
 
@@ -331,7 +339,7 @@ def remove_whitespace(string):
     return re.sub(pattern, '', string)
 
 
-def get_table_data(table, keys=None, ): # general function idea
+def get_table_data(table, keys=None, same_size=False): # general function idea
     collection = []
     table_head = table.find('thead') 
     if keys is None:
@@ -342,8 +350,8 @@ def get_table_data(table, keys=None, ): # general function idea
     for row in rows:
         info = {}
         row = row.find_all("td")
-        if(len(row) == len(keys)):
-            for i in range(len(row)): # should this be zip?
-                info[keys[i]] = row[i].text.replace('\xa0\n', '').replace('\n',' ').replace('           ', ' ').strip('\\"').strip()
+        for i in range(len(row)): # should this be zip?
+            info[keys[i]] = row[i].text.replace('\xa0\n', '').replace('\n',' ').replace('           ', ' ').strip('\\"').strip()
+        if ((same_size and len(row) == len(keys)) or not same_size): #same size enforces that the data found and the keys we want need to be the same size. This is helpful for avoiding information on tables you dont want.
             collection.append(info)
     return collection
