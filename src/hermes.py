@@ -45,7 +45,28 @@ class Hermes:
         roster = get_table_data(roster_table)[1:]
         return roster
 
-    def get_top_performances(self, state, team_name, gender, season): # Document
+    def get_top_performances(self, state, team_name, gender, season):
+        """
+        This will retrieve top performances from the team html
+        Parameters
+        ----------
+        state : str
+            state where the school is located. (There can be multiple universities with the same name)
+        
+        team_name : str
+            the name of the school
+        
+        gender : str
+            specifies whether we are trying to retrieve men or women's team
+
+        season : str
+            the season for the roster (*year*_Cross_Country, *year*_Indoor, or *year*_Outdoor)
+
+        Returns
+        -------
+        list
+            list of dictionaries containing list of performances
+        """
         team_html = self.get_team_html(state, team_name, gender, season)
         table = self.get_table_by_heading(team_html, 'EVENT') #getting top performance table by the EVENT heading, hackish ik.
         performances = get_table_data(table)
